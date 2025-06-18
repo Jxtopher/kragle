@@ -1,0 +1,30 @@
+type: directory
+name: "."
+children:
+  - type: file
+    name: .gitignore
+    original_size: 46
+    original_md5: 0af77d524121143116706ffad546fd55
+    is_compressed: false
+    content: |
+      *.pdb
+      **/*.rs.bk
+      debug/
+      node_modules/
+      target/
+    is_optional: false
+  - type: file
+    name: .gitattributes
+    content: |
+      # Auto detect text files and perform LF diff=astextplain
+  - type: directory
+    name: config
+    children:
+      - type: directory
+        name: kiss
+        children:
+          - type: file
+            name: myfile.txt
+            content: |
+              Hello world
+            is_optional: false

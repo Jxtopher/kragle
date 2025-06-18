@@ -1,0 +1,85 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "main" ]
+    tags:
+      - '*'
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Caching objects
+      id: cache-objects
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo
+          ${{ github.workspace }}/target
+        key: ${{ runner.os }}-rust-objects
+
+    - name: Set env RELEASE_VERSION
+      run: |
+        echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+    - name: pre-commit
+      run: |
+        pip install pre-commit
+        pre-commit autoupdate --repo https://github.com/pre-commit/pre-commit-hooks
+        pre-commit run --all-files
+
+    - name: Build
+      run: cargo build --verbose
+
+    - name: Run tests
+      run: cargo test --verbose
+
+    - name: Code coverage
+      run: |
+        cargo install cargo-llvm-cov
+        # rustup component add llvm-tools-preview --toolchain stable-x86_64-unknown-linux-gnu
+        # cargo llvm-cov test --lcov --output-path ./target/lcov.info
+        cargo llvm-cov
+
+    # - name: Install Miri
+    #   run: |
+    #     rustup toolchain install nightly --component miri
+    #     rustup override set nightly
+    #     cargo miri setup
+    # - name: Test with Miri
+    #   run: cargo miri test
+
+    #  Delivery
+    - name: Install package handler
+      if: startsWith(github.event.ref, 'refs/tags/')
+      run: cargo install cargo-deb
+
+    - name: Set Cargo.toml version
+      if: startsWith(github.event.ref, 'refs/tags/')
+      shell: bash
+      run: |
+        mv Cargo.toml Cargo.toml.orig
+        sed "s/0\\.0\\.0-git/${{env.RELEASE_VERSION}}/" Cargo.toml.orig >Cargo.toml
+        mv Cargo.lock Cargo.lock.orig
+        sed "s/0\\.0\\.0-git/${{env.RELEASE_VERSION}}/" Cargo.lock.orig >Cargo.lock
+
+    - name: Create package
+      if: startsWith(github.event.ref, 'refs/tags/')
+      run: cargo deb
+
+    - name: Publish the release
+      if: startsWith(github.event.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          ${{github.workspace}}/target/debian/*.deb

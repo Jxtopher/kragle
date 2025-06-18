@@ -1,0 +1,9 @@
+- name: kragle-repo.yaml
+  description: null
+  md5sum: 20afcee0cbf2631f940600d31f660ab7
+- name: kragle-rust-simpleA.yaml
+  description: "Rust for simple project"
+  md5sum: 4814e0794f9c9730cac6c3c5e7f15423
+- name: kragle-rust-simpleB.yaml
+  description: null
+  md5sum: 81645f5a6e3b4f43efdfdf80a8721230
