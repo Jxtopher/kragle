@@ -1,0 +1,96 @@
+# Auto detect text files and perform LF normalization
+*               text=auto
+
+# Files should be normalized
+.bashrc         text eol=lf
+.clang-format   text eol=lf
+.clang-tidy     text eol=lf
+.gitattributes  text eol=lf
+.gitconfig      text eol=lf
+.gitignore      text eol=lf
+.screenrc       text eol=lf
+.vimrc          text eol=lf
+.zsh_history    text eol=lf
+.zshrc          text eol=lf
+*.bibtex        text eol=lf diff=bibtex
+*.cmake         text eol=lf
+*.conf          text eol=lf
+*.cpp           text eol=lf diff=cpp
+*.css           text eol=lf diff=css
+*.csv           text eol=lf
+*.env           text eol=lf
+*.ex            text eol=lf diff=elixir
+*.exs           text eol=lf diff=elixir
+*.go            text eol=lf diff=golang
+*.h             text eol=lf diff=cpp
+*.hpp           text eol=lf diff=cpp
+*.html          text eol=lf diff=html
+*.java          text eol=lf diff=java
+*.js            text eol=lf
+*.json          text eol=lf
+*.md            text eol=lf diff=markdown
+*.py            text eol=lf diff=python
+*.rs            text eol=lf diff=rust
+*.rst           text eol=lf
+*.sh            text eol=lf
+*.svg           text eol=lf
+*.tex           text eol=lf diff=tex
+*.toml          text eol=lf diff=toml
+*.ts            text eol=lf
+*.tsx           text eol=lf
+*.txt           text eol=lf
+*.vim           text eol=lf
+*.xml           text eol=lf
+*.yml           text eol=lf
+Dockerfile      text eol=lf
+LICENSE         text eol=lf
+README          text eol=lf
+
+# Binary
+*.7z        binary
+*.bz        binary
+*.bz2       binary
+*.bzip2     binary
+*.dll       binary
+*.fla       binary
+*.flv       binary
+*.gif       binary
+*.gz        binary
+*.ico       binary
+*.jpeg      binary
+*.jpg       binary
+*.lz        binary
+*.lzma      binary
+*.mov       binary
+*.mp3       binary
+*.mp4       binary
+*.png       binary
+*.rar       binary
+*.so        binary
+*.swf       binary
+*.tar       binary
+*.tar.gz    binary
+*.taz       binary
+*.tbz       binary
+*.tbz2      binary
+*.tgz       binary
+*.tlz       binary
+*.ttf       binary
+*.txz       binary
+*.vsdx      binary
+*.xz        binary
+*.zip       binary
+*.zst       binary
+
+# Documents
+*.doc  diff=astextplain
+*.DOC  diff=astextplain
+*.docx diff=astextplain
+*.DOCX diff=astextplain
+*.dot  diff=astextplain
+*.DOT  diff=astextplain
+*.epub diff=astextplain
+*.pdf  diff=astextplain
+*.PDF  diff=astextplain
+*.rtf  diff=astextplain
+*.RTF  diff=astextplain
