@@ -91,17 +91,23 @@ fn main() -> io::Result<()> {
             let repo = Repo::new(input)?;
 
             if !Path::new(&target_folder).exists() {
-                fs::create_dir_all(target_folder)?;
-                println!("Created directory: {}", target_folder);
+                let dialog = Dialog::new(format!("Created directory: {}", target_folder));
+                match fs::create_dir_all(target_folder) {
+                    Ok(_) => dialog.end_print(dialog::Status::Ok),
+                    Err(e) => {
+                        dialog.end_print(dialog::Status::Failed);
+                        panic!("{}", e)
+                    }
+                }
             }
 
-            repo.to_folder(target_folder)?;
-            writeln!(
-                io::stdout(),
+            let mut dialog = Dialog::new("Importing structure from yaml file".to_string());
+            repo.to_folder(target_folder, &mut dialog)?;
+            dialog.set_msg(format!(
                 "Imported structure from \"{}\" into \"{}\"",
-                input,
-                target_folder
-            )?;
+                input, target_folder
+            ));
+            dialog.end_print(dialog::Status::Ok);
         }
         Commands::Tree { input } => {
             let repo = Repo::new(input)?;

@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use serde::Deserialize;
 use std::fs::File;
 use std::io::{self, Error, ErrorKind, Read, Write};
@@ -10,9 +11,9 @@ pub struct Manifest {
     description: Option<String>,
 }
 
-pub fn load_manifest(uri: &str) -> io::Result<Vec<Manifest>> {
+pub fn load_manifest(uri: &str) -> anyhow::Result<Vec<Manifest>> {
     if uri.starts_with("http://") || uri.starts_with("https://") {
-        let data = get_uri(uri)?;
+        let data = get_uri(uri).unwrap();
         let manifests: Vec<Manifest> =
             serde_yml::from_slice(&data).map_err(|e| Error::new(ErrorKind::InvalidData, e))?;
         Ok(manifests)
@@ -29,10 +30,7 @@ pub fn load_manifest(uri: &str) -> io::Result<Vec<Manifest>> {
                 serde_yml::from_str(&content).map_err(|e| Error::new(ErrorKind::InvalidData, e))?;
             Ok(manifests)
         } else {
-            Err(Error::new(
-                ErrorKind::InvalidInput,
-                "Unsupported file format",
-            ))
+            Err(anyhow!("URI must start with http:// or https://"))
         }
     }
 }

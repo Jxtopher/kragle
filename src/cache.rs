@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use std::env;
 use std::fs::{self, File};
 use std::io::{self, Read, Write};
@@ -5,20 +6,17 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 /// Retrieves the content from the cache or downloads and stores the file (in bytes)
-pub fn get_uri(uri: &str) -> io::Result<Vec<u8>> {
+pub fn get_uri(uri: &str) -> anyhow::Result<Vec<u8>> {
     match is_cached(uri) {
         Ok(_) => Ok(get_file(uri)?),
         Err(_) => {
             if uri.starts_with("http://") || uri.starts_with("https://") {
-                let response = reqwest::blocking::get(uri).unwrap();
-                let bytes = response.bytes().unwrap();
+                let response = reqwest::blocking::get(uri)?;
+                let bytes = response.bytes()?;
                 create_file(uri, &bytes)?;
                 Ok(bytes.to_vec())
             } else {
-                Err(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "URI must start with http:// or https://",
-                ))
+                Err(anyhow!("URI must start with http:// or https://"))
             }
         }
     }
@@ -42,19 +40,19 @@ fn get_file(uri: &str) -> io::Result<Vec<u8>> {
 }
 
 /// Checks if the file is in the cache and not too old
-pub fn is_cached(uri: &str) -> io::Result<()> {
+pub fn is_cached(uri: &str) -> anyhow::Result<()> {
     let filepath = uri_path(uri)?;
 
     let metadata = fs::metadata(&filepath)?;
     let modified_time = metadata.modified()?;
 
-    if modified_time.elapsed().unwrap() < Duration::new(24 * 60 * 60, 0) {
+    if modified_time.elapsed()? < Duration::new(24 * 60 * 60, 0) {
         Ok(())
     } else {
-        Err(io::Error::new(
-            io::ErrorKind::NotFound,
-            format!("File {} in cache is too old (more than 24 hours)", uri),
-        ))
+        Err(anyhow!(format!(
+            "File {} in cache is too old (more than 24 hours)",
+            uri
+        )))
     }
 }
 

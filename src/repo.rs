@@ -7,7 +7,7 @@ use md5;
 use serde::{Deserialize, Serialize};
 use xz2::read::{XzDecoder, XzEncoder};
 
-use crate::dialog;
+use crate::dialog::{self, Dialog};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "snake_case")]
@@ -158,7 +158,7 @@ impl Repo {
     }
 
     /// Recreates a folder and file tree from a JSON structure.
-    pub fn to_folder<P: AsRef<Path>>(&self, target_path: P) -> io::Result<()> {
+    pub fn to_folder<P: AsRef<Path>>(&self, target_path: P, dialog: &mut Dialog) -> io::Result<()> {
         match self {
             Repo::Directory {
                 name,
@@ -170,21 +170,23 @@ impl Repo {
                     None => {} // No dependencies
                     Some(dependencies) => {
                         for dependency in dependencies {
-                            println!("Dependancie found: {}", dependency);
+                            dialog.set_msg(format!("Dependancie found: {}", dependency));
+                            dialog.end_print(dialog::Status::Ok);
                             let dependent_repo = self.get_dependency(dependency)?;
-                            dependent_repo.to_folder(target_path.as_ref())?;
+                            dependent_repo.to_folder(target_path.as_ref(), dialog)?;
                         }
                     }
                 }
 
                 let dir_path = target_path.as_ref().join(name);
                 if !Path::new(&dir_path).exists() {
+                    dialog.set_msg(format!("Created directory: {}", dir_path.display()));
+                    dialog.spinner();
                     fs::create_dir_all(&dir_path)?;
-                    println!("Created directory: {}", dir_path.display());
                 }
 
                 for child in children {
-                    child.to_folder(&dir_path)?;
+                    child.to_folder(&dir_path, dialog)?;
                 }
             }
             Repo::File {
@@ -206,6 +208,9 @@ impl Repo {
                     Some(false) | None => content.as_bytes().to_vec(),
                 };
 
+                dialog.set_msg(format!("Created file: {}", file_path.display()));
+                dialog.spinner();
+
                 // Write as text file, assuming utf-8
                 let mut f = File::create(&file_path)?;
                 f.write_all(&file_content)?;
@@ -217,24 +222,28 @@ impl Repo {
                 match original_md5 {
                     Some(original_md5) => {
                         if &actual_md5 == original_md5 {
-                            println!("Created file: {} (MD5 verified)", file_path.display());
+                            dialog.set_msg(format!(
+                                "Created file (MD5 verified): {}",
+                                file_path.display()
+                            ));
+                            dialog.spinner();
                         } else {
-                            println!(
-                                "WARNING: MD5 mismatch for {}. Expected {}, got {}",
+                            dialog.set_msg(format!(
+                                "Created file (MD5 mismatch): {}",
                                 file_path.display(),
-                                original_md5,
-                                actual_md5
-                            );
+                            ));
+                            dialog.end_print(dialog::Status::Warning);
                         }
                     }
                     None => {
-                        println!(
-                            "WARNING: MD5 not provided for {} got {}",
-                            file_path.display(),
-                            actual_md5
-                        );
+                        dialog.set_msg(format!(
+                            "Created file (MD5 not provided): {}",
+                            file_path.display()
+                        ));
+                        dialog.end_print(dialog::Status::Warning);
                     }
                 }
+
                 // } else {
                 //     println!("Created file: {}", file_path.display());
                 // }
@@ -402,7 +411,7 @@ mod tests {
     }
 
     #[test]
-    fn create_file() {
+    fn test_create_file() {
         let (_, target_path) = setup_temp_dir();
         let content = "Hello, World!";
         let md5_checksum = format!("{:x}", md5::compute(content));
@@ -427,7 +436,7 @@ mod tests {
     }
 
     #[test]
-    fn create_directory() {
+    fn test_create_directory() {
         let (_, target_path) = setup_temp_dir();
         let repo = Repo::Directory {
             name: "dir".to_string(),

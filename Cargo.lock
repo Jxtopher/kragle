@@ -701,6 +701,7 @@ dependencies = [
 name = "kragle"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "base85",
  "cargo-husky",
  "clap",
